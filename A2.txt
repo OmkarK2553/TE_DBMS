@@ -1,0 +1,195 @@
+mysql> create table Dept(dept_id int primary key auto_increment,dname varchar(20),dlocation varchar(20));
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> create table Employee(emp_id int primary key auto_increment,dept_id int,fname varchar(20),lname varchar(20),designation varchar(20),salary int,joinDate date,foreign key (dept_id) references Dept(dept_id));
+Query OK, 0 rows affected (0.07 sec)
+
+mysql> create table Project(proj_id int primary key auto_increment,dept_id int,pname varchar(20),plocation varchar(20),pcost int,pyear year,foreign key (dept_id) references Dept(dept_id));
+Query OK, 0 rows affected (0.52 sec)
+
+
+
+mysql> select * from Dept;
++---------+----------+-----------+
+| dept_id | dname    | dlocation |
++---------+----------+-----------+
+|       1 | comp     | mumbai    |
+|       2 | it       | pune      |
+|       3 | entc     | pune      |
+|       4 | mech     | hyderabad |
+|       5 | civil    | mumbai    |
+|       6 | robotics | delhi     |
++---------+----------+-----------+
+6 rows in set (0.00 sec)
+
+mysql> select * from Project;
++---------+---------+-------+-----------+--------+-------+
+| proj_id | dept_id | pname | plocation | pcost  | pyear |
++---------+---------+-------+-----------+--------+-------+
+|       1 |       2 | p1    | mumbai    | 700000 |  2004 |
+|       2 |       1 | p2    | mumbai    | 500000 |  2007 |
+|       3 |       4 | p3    | delhi     | 250000 |  2003 |
+|       4 |       3 | p4    | pune      |  70000 |  2005 |
+|       5 |       1 | p5    | pune      | 650000 |  2009 |
++---------+---------+-------+-----------+--------+-------+
+5 rows in set (0.00 sec)
+
+mysql> select * from Employee;
++--------+---------+-------+-------+-------------+--------+------------+
+| emp_id | dept_id | fname | lname | designation | salary | joinDate   |
++--------+---------+-------+-------+-------------+--------+------------+
+|      1 |       4 | p1    | l1    | d1          |  50000 | 2015-11-26 |
+|      2 |       1 | e2    | l2    | d1          |  50000 | 2013-04-16 |
+|      3 |       2 | h3    | l3    | d2          |  40000 | 2012-09-30 |
+|      4 |       2 | p4    | l4    | d4          |  90000 | 2019-03-16 |
+|      5 |       5 | e5    | l5    | d3          |  70000 | 2012-05-16 |
+|      6 |       2 | h6    | l6    | d2          |  60000 | 2009-05-17 |
+|      7 |       1 | h7    | l7    | d3          |  60000 | 2009-07-13 |
+|      8 |       3 | e8    | l8    | d6          |  50000 | 2016-07-25 |
+|      9 |       4 | e9    | l9    | d6          |  30000 | 2010-07-23 |
+|     10 |       6 | e10   | l10   | d7          |  20000 | 2018-12-26 |
++--------+---------+-------+-------+-------------+--------+------------+
+10 rows in set (0.00 sec)
+
+
+
+
+
+
+
+
+2) 
+
+mysql> select * from Employee where ((dept_id=1 or dept_id=2) and (fname like 'p%' or fname like 'h%'));
++--------+---------+-------+-------+-------------+--------+------------+
+| emp_id | dept_id | fname | lname | designation | salary | joinDate   |
++--------+---------+-------+-------+-------------+--------+------------+
+|      7 |       1 | h7    | l7    | d3          |  60000 | 2009-07-13 |
+|      3 |       2 | h3    | l3    | d2          |  40000 | 2012-09-30 |
+|      4 |       2 | p4    | l4    | d4          |  90000 | 2019-03-16 |
+|      6 |       2 | h6    | l6    | d2          |  60000 | 2009-05-17 |
++--------+---------+-------+-------+-------------+--------+------------+
+4 rows in set (0.01 sec)
+
+
+
+3)
+
+mysql> select distinct designation from Employee;
++-------------+
+| designation |
++-------------+
+| d1          |
+| d2          |
+| d4          |
+| d3          |
+| d6          |
+| d7          |
++-------------+
+6 rows in set (0.01 sec)
+
+
+
+4)
+
+mysql> update Employee set salary=salary+0.1*salary where joindate<'2015-01-01';
+Query OK, 6 rows affected (0.01 sec)
+Rows matched: 6  Changed: 6  Warnings: 0
+
+mysql> select * from Employee;
++--------+---------+-------+-------+-------------+--------+------------+
+| emp_id | dept_id | fname | lname | designation | salary | joinDate   |
++--------+---------+-------+-------+-------------+--------+------------+
+|      1 |       4 | p1    | l1    | d1          |  50000 | 2015-11-26 |
+|      2 |       1 | e2    | l2    | d1          |  55000 | 2013-04-16 |
+|      3 |       2 | h3    | l3    | d2          |  44000 | 2012-09-30 |
+|      4 |       2 | p4    | l4    | d4          |  90000 | 2019-03-16 |
+|      5 |       5 | e5    | l5    | d3          |  77000 | 2012-05-16 |
+|      6 |       2 | h6    | l6    | d2          |  66000 | 2009-05-17 |
+|      7 |       1 | h7    | l7    | d3          |  66000 | 2009-07-13 |
+|      8 |       3 | e8    | l8    | d6          |  50000 | 2016-07-25 |
+|      9 |       4 | e9    | l9    | d6          |  33000 | 2010-07-23 |
+|     10 |       6 | e10   | l10   | d7          |  20000 | 2018-12-26 |
++--------+---------+-------+-------+-------------+--------+------------+
+10 rows in set (0.00 sec)
+
+
+
+6)
+
+mysql> select pname from Project where plocation='pune';
++-------+
+| pname |
++-------+
+| p4    |
+| p5    |
++-------+
+2 rows in set (0.00 sec)
+
+
+
+7)
+
+mysql> select * from Project where pcost between 100000 and 500000;
++---------+---------+-------+-----------+--------+-------+
+| proj_id | dept_id | pname | plocation | pcost  | pyear |
++---------+---------+-------+-----------+--------+-------+
+|       2 |       1 | p2    | mumbai    | 500000 |  2007 |
+|       3 |       4 | p3    | delhi     | 250000 |  2003 |
++---------+---------+-------+-----------+--------+-------+
+2 rows in set (0.00 sec)
+
+
+
+8)
+
+mysql> select * from Project where pcost=(select MAX(pcost) from Project);
++---------+---------+-------+-----------+--------+-------+
+| proj_id | dept_id | pname | plocation | pcost  | pyear |
++---------+---------+-------+-----------+--------+-------+
+|       1 |       2 | p1    | mumbai    | 700000 |  2004 |
++---------+---------+-------+-----------+--------+-------+
+1 row in set (0.01 sec)
+
+mysql> select AVG(pcost) as avg_cost from Project;
++-------------+
+| avg_cost    |
++-------------+
+| 434000.0000 |
++-------------+
+1 row in set (0.00 sec)
+
+
+
+9)
+
+mysql> select * from Employee order by emp_id desc,fname desc;
++--------+---------+-------+-------+-------------+--------+------------+
+| emp_id | dept_id | fname | lname | designation | salary | joinDate   |
++--------+---------+-------+-------+-------------+--------+------------+
+|     10 |       6 | e10   | l10   | d7          |  20000 | 2018-12-26 |
+|      9 |       4 | e9    | l9    | d6          |  33000 | 2010-07-23 |
+|      8 |       3 | e8    | l8    | d6          |  50000 | 2016-07-25 |
+|      7 |       1 | h7    | l7    | d3          |  66000 | 2009-07-13 |
+|      6 |       2 | h6    | l6    | d2          |  66000 | 2009-05-17 |
+|      5 |       5 | e5    | l5    | d3          |  77000 | 2012-05-16 |
+|      4 |       2 | p4    | l4    | d4          |  90000 | 2019-03-16 |
+|      3 |       2 | h3    | l3    | d2          |  44000 | 2012-09-30 |
+|      2 |       1 | e2    | l2    | d1          |  55000 | 2013-04-16 |
+|      1 |       4 | p1    | l1    | d1          |  50000 | 2015-11-26 |
++--------+---------+-------+-------+-------------+--------+------------+
+10 rows in set (0.01 sec)
+
+
+
+10)
+
+mysql> select pname,plocation,pcost from Project where pyear=2004 or pyear=2005 or pyear=2007;
++-------+-----------+--------+
+| pname | plocation | pcost  |
++-------+-----------+--------+
+| p1    | mumbai    | 700000 |
+| p2    | mumbai    | 500000 |
+| p4    | pune      |  70000 |
++-------+-----------+--------+
+3 rows in set (0.00 sec)

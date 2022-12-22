@@ -1,0 +1,234 @@
+INDEXES
+
+
+
+> db.student.find({rollno:{$gt:1}}).explain("executionStats")
+{
+"executionStats" : {
+                "executionSuccess" : true,
+                "nReturned" : 4,
+                "executionTimeMillis" : 0,
+                "totalKeysExamined" : 0,
+                "totalDocsExamined" : 5,
+                "executionStages" : {
+                        "stage" : "COLLSCAN",
+                        "filter" : {
+                                "rollno" : {
+                                        "$gt" : 1
+                                }
+                        },
+                        "nReturned" : 4,
+                        "executionTimeMillisEstimate" : 0,
+                        "works" : 7,
+                        "advanced" : 4,
+                        "needTime" : 2,
+                        "needYield" : 0,
+                        "saveState" : 0,
+                        "restoreState" : 0,
+                        "isEOF" : 1,
+                        "direction" : "forward",
+                        "docsExamined" : 5
+                }
+        },
+}
+
+
+> db.student.createIndex({rollno:1},{name:"simpleIndex"})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.student.getIndexes()
+[
+        {
+                "v" : 2,
+                "key" : {
+                        "_id" : 1
+                },
+                "name" : "_id_"
+        },
+        {
+                "v" : 2,
+                "key" : {
+                        "rollno" : 1
+                },
+                "name" : "simpleIndex"
+        }
+]
+> db.student.find({rollno:{$gt:1}}).explain("executionStats")
+=> totalDocsExamined = 4
+
+
+
+
+// unique index
+
+
+> db.student.createIndex({name:1},{unique:true})
+{
+        "numIndexesBefore" : 2,
+        "numIndexesAfter" : 3,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.student.getIndexes()
+[
+        {
+                "v" : 2,
+                "key" : {
+                        "_id" : 1
+                },
+                "name" : "_id_"
+        },
+        {
+                "v" : 2,
+                "key" : {
+                        "rollno" : 1
+                },
+                "name" : "simpleIndex"
+        },
+        {
+                "v" : 2,
+                "key" : {
+                        "name" : 1
+                },
+                "name" : "name_1",
+                "unique" : true
+        }
+]
+> db.student.insert({rollno:9,name:"harry",class:'te4'});
+WriteResult({
+        "nInserted" : 0,
+        "writeError" : {
+                "code" : 11000,
+                "errmsg" : "E11000 duplicate key error collection: dbms_prac.student index: name_1 dup key: { name: \"harry\" }"
+        }
+})
+
+
+
+
+// compound index
+
+
+> db.student.dropIndex("simpleIndex")
+{ "nIndexesWas" : 3, "ok" : 1 }
+
+> db.student.find({rollno:{$gt:3}}).explain("executionStats");
+=> totalDocsExamined = 5
+
+> db.student.createIndex({rollno:1,name:-1})
+{
+        "numIndexesBefore" : 2,
+        "numIndexesAfter" : 3,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.student.find({rollno:{$gt:3}}).explain("executionStats")
+=> totalDocsExamined = 2
+
+
+
+
+
+
+
+AGGREGATION
+
+
+
+// Match
+
+
+> db.orders.aggregate(
+... {
+... $match:{name:"harry"}
+... })
+{ "_id" : 1, "name" : "harry", "ord_date" : ISODate("2022-06-19T00:00:00Z"), "items" : [ { "item" : "pen", "qty" : 5, "price" : 20 }, { "item" : "book", "qty" : 1, "price" : 50 } ], "tot" : 150, "status" : "A" }
+{ "_id" : 3, "name" : "harry", "ord_date" : ISODate("2022-09-23T00:00:00Z"), "items" : [ { "item" : "chocolate", "qty" : 5, "price" : 40 } ], "tot" : 200, "status" : "A" }
+
+
+
+
+// Basic
+
+> db.orders.aggregate(
+... {
+...     $match:{name:"ron"}
+... },
+... {
+...     $group:{_id:"$name",totalPrice:{$sum:"$tot"}}
+... }
+... )
+{ "_id" : "ron", "totalPrice" : 340 }
+
+
+
+// Using Dates
+
+> db.orders.aggregate(
+... {
+...     $match:{ord_date:{$gt:new ISODate("2022-09-25"),$lt:new ISODate("2022-11-25")}}
+... },
+... {
+...     $group:{_id:"$name",totalPrice:{$sum:"$tot"}}
+... }
+... )
+{ "_id" : "ron", "totalPrice" : 340 }
+{ "_id" : "hermione", "totalPrice" : 450 }
+
+
+
+// Sort
+
+> db.orders.aggregate(
+ {
+     $match:{ord_date:{$gt:new ISODate("2022-09-25"),$lt:new ISODate("2022-11-25")}}
+ },
+ {
+     $group:{_id:"$name",totalPrice:{$sum:"$tot"}}
+ },
+ {
+     $sort:{totalPrice:-1}
+ }
+ )
+{ "_id" : "hermione", "totalPrice" : 450 }
+{ "_id" : "ron", "totalPrice" : 340 }
+
+
+
+// Avg
+
+> db.orders.aggregate( {     $match:{ord_date:{$gt:new ISODate("2022-09-25"),$lt:new ISODate("2022-11-25")}} }, {     $group:{_id:"$name",totalPrice:{$sum:"$tot"},avgPrice:{$avg:"$tot"}} }, {$sort:{totalPrice:-1}} )
+{ "_id" : "hermione", "totalPrice" : 450, "avgPrice" : 450 }
+{ "_id" : "ron", "totalPrice" : 340, "avgPrice" : 170 }
+
+
+
+
+// Total price by items... match by status
+
+
+> db.orders.aggregate( { $match:{status:"A"} }, { $group:{_id:"$items.item",totalPrice:{$sum:"$tot"}} })
+{ "_id" : [ "chocolate" ], "totalPrice" : 200 }
+{ "_id" : [ "papers", "pen", "book" ], "totalPrice" : 290 }
+{ "_id" : [ "pen", "book" ], "totalPrice" : 150 }
+
+
+
+// multiple match
+
+
+> db.orders.aggregate( { $match:{status:"P",name:"hermione"} }, { $group:{_id:"$items.item",total:{$sum:{$multiply:["$qty","$price"]}}} } )
+{ "_id" : [ "chocolate", "pen" ], "total" : 0 }
+
+
+
+// Embedded document
+
+
+
+
+

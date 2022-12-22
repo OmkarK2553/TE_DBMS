@@ -1,0 +1,76 @@
+// Procedure
+
+
+
+
+create procedure proc_Grade(in roll int)
+begin
+declare sname varchar(20);
+declare class varchar(20);
+declare smarks int;
+declare EXIT HANDLER for SQLException SELECT "An error!";
+select name,mark from Marks m where m.rollno=roll into sname,smarks;
+if smarks between 990 and 1500 then
+set class := 'distinction';
+elseif smarks between 900 and 989 then
+set class := 'first class';
+elseif smarks between 825 and 899 then
+set class := 'higher second class';
+end if;
+insert into Result values(roll,sname,class);
+end //
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Function
+
+
+create function calGrade(roll int)
+returns varchar(20)
+deterministic
+begin
+declare class varchar(20);
+declare sname varchar(20);
+declare totmarks int;
+#declare EXIT HANDLER for SQLException SELECT "an error!";
+select m.name from Marks m where m.rollno=roll into sname;
+select m.mark from Marks m where m.rollno=roll into totmarks;
+if totmarks between 990 and 1500 then
+set class := 'distinction';
+elseif totmarks between 900 and 989 then
+set class := 'first class';
+elseif totmarks between 825 and 899 then
+set class := 'higher second class';
+end if;
+return class;
+end //
+
+
+
+create function calGrade(roll int)
+returns varchar(20)
+deterministic
+begin
+declare smarks int;
+declare sname varchar(20);
+declare class varchar(20);
+select name,mark from Marks m where m.rollno=roll into sname,smarks;
+if smarks between 990 and 1500 then
+set class := 'distinction';
+elseif smarks between 900 and 989 then
+set class := 'first class';
+elseif smarks between 825 and 899 then
+set class := 'higher second class';
+endif;
+return class;
+end //

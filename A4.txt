@@ -1,0 +1,186 @@
+// Area of circle
+
+
+delimiter //
+create procedure calc_area()
+begin
+declare r int;
+declare a float(5,2);
+set r := 5;
+create table areas(r int,a decimal);
+myloop : loop
+if r>9 then
+leave myloop;
+end if;
+set a := pi()*r*r;
+insert into areas values(r,a);
+set r := r+1;
+end loop;
+select * from areas;
+end //
+
+
+**************************************************************
+mysql> create procedure calc_area()
+    -> begin
+    -> declare r int;
+    -> declare a float(5,2);
+    -> set r := 5;
+    ->
+    -> create table areas (radius int,area float);
+    ->
+    -> myloop : loop
+    -> if r>9 then
+    -> leave myloop;
+    -> end if;
+    -> set a:= pi()*r*r;
+    -> insert into areas values(r,a);
+    -> set r := r+1;
+    -> end loop;
+    -> select * from areas;
+    -> end //
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+
+mysql> delimiter ;
+mysql> call calc_area();
++--------+--------+
+| radius | area   |
++--------+--------+
+|      5 |  78.54 |
+|      6 |  113.1 |
+|      7 | 153.94 |
+|      8 | 201.06 |
+|      9 | 254.47 |
++--------+--------+
+5 rows in set (0.30 sec)
+***********************************************************
+
+
+
+
+// Borrower Fine
+
+
+
+
+
+delimiter //
+create procedure calc_fine(in roll int, in nbook varchar(20))
+begin
+declare fine int;
+declare idate date;
+declare days int;
+declare EXIT HANDLER for SQLException SELECT "An error has occured!";
+#if roll<0 then
+#SIGNAL SQLSTATE '22003'
+#set message_text := 'Roll no must be positive';
+#end if;
+select date_of_issue from Borrower b where b.rollno=roll and b.name_of_book=nbook into idate;
+set days := datediff(curdate(),idate);
+if days between 15 and 30 then
+set fine := 5*(days-15);
+elseif days>30 then
+set fine := 75+(days-30)*50;
+end if;
+insert into Fine values(roll,idate,ifnull(fine,0));
+update Borrower b set status='R' where b.rollno=roll and b.name_of_book=nbook;
+end //
+
+
+
+
+****************************************************************
+
+mysql>  create table Borrower(rollno int,name varchar(20),date_of_issue date,name_of_book varchar(20),status char(1) default 'I');
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> desc Borrower;
++---------------+-------------+------+-----+---------+-------+
+| Field         | Type        | Null | Key | Default | Extra |
++---------------+-------------+------+-----+---------+-------+
+| rollno        | int         | YES  |     | NULL    |       |
+| name          | varchar(20) | YES  |     | NULL    |       |
+| date_of_issue | date        | YES  |     | NULL    |       |
+| name_of_book  | varchar(20) | YES  |     | NULL    |       |
+| status        | char(1)     | YES  |     | I       |       |
++---------------+-------------+------+-----+---------+-------+
+5 rows in set (0.00 sec)
+
+mysql> insert into Borrower values (1,"daniel","2022-09-26","book1",default);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Borrower values (2,"rupert","2022-10-22","book2",default);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Borrower values (3,"tom","2022-10-14","book3",default);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Borrower values (4,"emma","2022-11-8","book4",default);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Borrower values (1,"daniel","2022-11-6","book5",default);
+Query OK, 1 row affected (0.02 sec)
+
+mysql> select * from Borrower;
++--------+--------+---------------+--------------+--------+
+| rollno | name   | date_of_issue | name_of_book | status |
++--------+--------+---------------+--------------+--------+
+|      1 | daniel | 2022-09-26    | book1        | I      |
+|      2 | rupert | 2022-10-22    | book2        | I      |
+|      3 | tom    | 2022-10-14    | book3        | I      |
+|      4 | emma   | 2022-11-08    | book4        | I      |
+|      1 | daniel | 2022-11-06    | book5        | I      |
++--------+--------+---------------+--------------+--------+
+
+
+
+mysql> delimiter //
+mysql> create procedure calc_fine(in roll int, in nbook varchar(20))
+    -> begin
+    -> declare fine int;
+    -> declare idate date;
+    -> declare days int;
+    -> declare EXIT HANDLER for SQLException SELECT "An error has occured!";
+    -> #if roll<0 then
+    -> #SIGNAL SQLSTATE '22003'
+    -> #set message_text := 'Roll no must be positive';
+    -> #end if;
+    -> select date_of_issue from Borrower b where b.rollno=roll and b.name_of_book=nbook into idate;
+    -> set days := datediff(curdate(),idate);
+    -> if days between 15 and 30 then
+    -> set fine := 5*(days-15);
+    -> elseif days>30 then
+    -> set fine := 75+(days-30)*50;
+    -> end if;
+    -> insert into Fine values(roll,idate,ifnull(fine,0));
+    -> update Borrower b set status='R' where b.rollno=roll and b.name_of_book=nbook;
+    -> end //
+Query OK, 0 rows affected (0.02 sec)
+
+
+mysql> call calc_fine(2,'book2');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> call calc_fine(3,'book3');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> call calc_fine(4,'book4');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> call calc_fine(1,'book5');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from Fine;
++--------+---------------+--------+
+| rollno | date_of_issue | amount |
++--------+---------------+--------+
+|      1 | 2022-09-26    |    925 |
+|      2 | 2022-10-22    |     30 |
+|      3 | 2022-10-14    |     70 |
+|      4 | 2022-11-08    |      0 |
+|      1 | 2022-11-06    |      0 |
++--------+---------------+--------+
+5 rows in set (0.00 sec)
+
+
+*********************************************************************

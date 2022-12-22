@@ -1,0 +1,5 @@
+mysql> create table Library(isbn int primary key auto_increment,name varchar(20),author varchar(20),published year,stock int);
+Query OK, 0 rows affected (0.07 sec)
+
+mysql> create table Library_Audit(isbn int,name varchar(20),author varchar(20),published year,stock int,current_total_stock int);
+Query OK, 0 rows affected (0.05 sec)

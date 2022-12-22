@@ -1,0 +1,346 @@
+mysql> desc library;
++-----------+-------------+------+-----+---------+----------------+
+| Field     | Type        | Null | Key | Default | Extra          |
++-----------+-------------+------+-----+---------+----------------+
+| isbn      | int         | NO   | PRI | NULL    | auto_increment |
+| name      | varchar(20) | YES  |     | NULL    |                |
+| author    | varchar(20) | YES  |     | NULL    |                |
+| published | year        | YES  |     | NULL    |                |
+| stock     | int         | YES  |     | NULL    |                |
++-----------+-------------+------+-----+---------+----------------+
+5 rows in set (0.01 sec)
+
+
+mysql> desc library_audit;
++---------------------+-------------+------+-----+---------+-------+
+| Field               | Type        | Null | Key | Default | Extra |
++---------------------+-------------+------+-----+---------+-------+
+| isbn                | int         | YES  |     | NULL    |       |
+| name                | varchar(20) | YES  |     | NULL    |       |
+| author              | varchar(20) | YES  |     | NULL    |       |
+| published           | year        | YES  |     | NULL    |       |
+| stock               | int         | YES  |     | NULL    |       |
++---------------------+-------------+------+-----+---------+-------+
+6 rows in set (0.01 sec)
+
+
+mysql> desc library_stock;
++-----------+-------------+------+-----+-------------------+-------------------+
+| Field     | Type        | Null | Key | Default           | Extra             |
++-----------+-------------+------+-----+-------------------+-------------------+
+| isbn      | int         | NO   | PRI | NULL              |                   |
+| name      | varchar(20) | YES  |     | NULL              |                   |
+| author    | varchar(20) | YES  |     | NULL              |                   |
+| published | year        | YES  |     | NULL              |                   |
+| stock     | int         | YES  |     | NULL              |                   |
+| time      | timestamp   | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
++-----------+-------------+------+-----+-------------------+-------------------+
+6 rows in set (0.01 sec)
+
+
+
+
+
+**************before insert***********************
+
+
+delimiter //
+create trigger before_insert before insert on Library for each row
+begin
+
+if new.stock>50 then
+SIGNAL SQLSTATE '45000'
+set message_text = "Stock cannot be more than 50 at once!";
+end if;
+
+end //
+
+
+
+*****************after insert********************
+
+
+delimiter //
+create trigger after_insert after insert on Library for each row
+begin
+
+declare rowcount int;
+
+select count(*) into rowcount from Library_stock where name=new.name;
+
+if rowcount>0 then
+update Library_stock set stock = stock+new.stock where name=new.name;
+else
+insert into Library_stock values(new.isbn,new.name,new.author,new.published,new.stock,default);
+end if;
+
+end //
+
+
+
+
+
+
+*************************************************************INSERT****************************************************
+
+mysql> insert into library values(1,'b1','p1',2015,12);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from library;
++------+------+--------+-----------+-------+
+| isbn | name | author | published | stock |
++------+------+--------+-----------+-------+
+|    1 | b1   | p1     |      2015 |    12 |
++------+------+--------+-----------+-------+
+1 row in set (0.00 sec)
+
+mysql> select * from library_stock;
++------+------+--------+-----------+-------+---------------------+
+| isbn | name | author | published | stock | time                |
++------+------+--------+-----------+-------+---------------------+
+|    1 | b1   | p1     |      2015 |    12 | 2022-11-14 17:27:56 |
++------+------+--------+-----------+-------+---------------------+
+1 row in set (0.00 sec)
+
+mysql> insert into library values(1,'b1','p1',2015,53);
+ERROR 1644 (45000): Stock cannot be more than 50 at once!
+
+
+*************************************************************INSERT****************************************************
+
+
+
+
+*****************before update********************
+
+
+delimiter //
+create trigger before_update before update on Library for each row
+begin
+
+if new.stock>3*old.stock then
+signal sqlstate '45000'
+set message_text = "Cant update the stock to triple its value!";
+end if;
+
+end //
+
+
+*****************after update**********************
+
+
+delimiter //
+create trigger after_update after update on Library for each row
+begin
+
+insert into Library_Audit values (old.isbn,old.name,old.author,old.published,old.stock);
+update Library_stock set stock=stock+new.stock-old.stock where name=new.name;
+
+end //
+
+
+
+*************************************************************UPDATE****************************************************
+
+
+
+
+mysql> update library set stock=62 where isbn=3;
+ERROR 1644 (45000): Cant update the stock to triple its value!
+mysql> update library set stock=42 where isbn=3;
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> select * from library;
++------+------+--------+-----------+-------+
+| isbn | name | author | published | stock |
++------+------+--------+-----------+-------+
+|    1 | b1   | p1     |      2015 |    12 |
+|    2 | b1   | p1     |      2015 |    15 |
+|    3 | b2   | p2     |      2013 |    42 |
++------+------+--------+-----------+-------+
+3 rows in set (0.00 sec)
+
+mysql> select * from library_stock;
++------+------+--------+-----------+-------+---------------------+
+| isbn | name | author | published | stock | time                |
++------+------+--------+-----------+-------+---------------------+
+|    1 | b1   | p1     |      2015 |    27 | 2022-11-14 17:27:56 |
+|    3 | b2   | p2     |      2013 |    42 | 2022-11-14 17:34:24 |
++------+------+--------+-----------+-------+---------------------+
+2 rows in set (0.00 sec)
+
+mysql> update library set stock=25 where isbn=2;
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> select * from library;
++------+------+--------+-----------+-------+
+| isbn | name | author | published | stock |
++------+------+--------+-----------+-------+
+|    1 | b1   | p1     |      2015 |    12 |
+|    2 | b1   | p1     |      2015 |    25 |
+|    3 | b2   | p2     |      2013 |    42 |
++------+------+--------+-----------+-------+
+3 rows in set (0.00 sec)
+
+mysql> select * from library_stock;
++------+------+--------+-----------+-------+---------------------+
+| isbn | name | author | published | stock | time                |
++------+------+--------+-----------+-------+---------------------+
+|    1 | b1   | p1     |      2015 |    37 | 2022-11-14 17:27:56 |
+|    3 | b2   | p2     |      2013 |    42 | 2022-11-14 17:34:24 |
++------+------+--------+-----------+-------+---------------------+
+2 rows in set (0.00 sec)
+
+mysql> select * from library_audit;
++------+------+--------+-----------+-------+
+| isbn | name | author | published | stock |
++------+------+--------+-----------+-------+
+|    3 | b2   | p2     |      2013 |    20 |
+|    2 | b1   | p1     |      2015 |    15 |
++------+------+--------+-----------+-------+
+2 rows in set (0.00 sec)
+
+
+*************************************************************UPDATE****************************************************
+
+
+
+
+
+****************before delete*********************
+
+
+delimiter //
+create trigger before_delete before delete on Library for each row
+begin
+
+insert into Library_audit values(old.isbn,old.name,old.author,old.published,old.stock);
+
+end //
+
+
+
+
+***************after delete************************
+
+
+
+delimiter //
+create trigger after_delete after delete on Library for each row
+begin
+
+declare currStock int;
+
+update Library_stock set stock = stock-old.stock where name=old.name;
+select stock from Library_stock where name=old.name into currStock;
+
+if currStock=0 then
+delete from Library_stock where isbn=old.isbn;
+end if;
+
+end //
+
+
+
+
+
+*************************************************************DELETE****************************************************
+
+
+
+
+
+
+mysql> select * from library;
++------+------+--------+-----------+-------+
+| isbn | name | author | published | stock |
++------+------+--------+-----------+-------+
+|    1 | b1   | p1     |      2015 |    12 |
+|    2 | b1   | p1     |      2015 |    25 |
+|    3 | b2   | p2     |      2013 |    42 |
++------+------+--------+-----------+-------+
+3 rows in set (0.00 sec)
+
+mysql> select * from library_audit;
++------+------+--------+-----------+-------+
+| isbn | name | author | published | stock |
++------+------+--------+-----------+-------+
+|    3 | b2   | p2     |      2013 |    20 |
+|    2 | b1   | p1     |      2015 |    15 |
++------+------+--------+-----------+-------+
+2 rows in set (0.00 sec)
+
+mysql> select * from library_stock;
++------+------+--------+-----------+-------+---------------------+
+| isbn | name | author | published | stock | time                |
++------+------+--------+-----------+-------+---------------------+
+|    1 | b1   | p1     |      2015 |    37 | 2022-11-14 17:27:56 |
+|    3 | b2   | p2     |      2013 |    42 | 2022-11-14 17:34:24 |
++------+------+--------+-----------+-------+---------------------+
+2 rows in set (0.00 sec)
+
+mysql> delete from library where isbn=2;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from library;
++------+------+--------+-----------+-------+
+| isbn | name | author | published | stock |
++------+------+--------+-----------+-------+
+|    1 | b1   | p1     |      2015 |    12 |
+|    3 | b2   | p2     |      2013 |    42 |
++------+------+--------+-----------+-------+
+2 rows in set (0.00 sec)
+
+mysql> select * from library_audit;
++------+------+--------+-----------+-------+
+| isbn | name | author | published | stock |
++------+------+--------+-----------+-------+
+|    3 | b2   | p2     |      2013 |    20 |
+|    2 | b1   | p1     |      2015 |    15 |
+|    2 | b1   | p1     |      2015 |    25 |
++------+------+--------+-----------+-------+
+3 rows in set (0.00 sec)
+
+mysql> select * from library_stock;
++------+------+--------+-----------+-------+---------------------+
+| isbn | name | author | published | stock | time                |
++------+------+--------+-----------+-------+---------------------+
+|    1 | b1   | p1     |      2015 |    12 | 2022-11-14 17:27:56 |
+|    3 | b2   | p2     |      2013 |    42 | 2022-11-14 17:34:24 |
++------+------+--------+-----------+-------+---------------------+
+2 rows in set (0.00 sec)
+
+mysql> delete from library where isbn=3;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from library;
++------+------+--------+-----------+-------+
+| isbn | name | author | published | stock |
++------+------+--------+-----------+-------+
+|    1 | b1   | p1     |      2015 |    12 |
++------+------+--------+-----------+-------+
+1 row in set (0.00 sec)
+
+mysql> select * from library_audit;
++------+------+--------+-----------+-------+
+| isbn | name | author | published | stock |
++------+------+--------+-----------+-------+
+|    3 | b2   | p2     |      2013 |    20 |
+|    2 | b1   | p1     |      2015 |    15 |
+|    2 | b1   | p1     |      2015 |    25 |
+|    3 | b2   | p2     |      2013 |    42 |
++------+------+--------+-----------+-------+
+4 rows in set (0.00 sec)
+
+mysql> select * from library_stock;
++------+------+--------+-----------+-------+---------------------+
+| isbn | name | author | published | stock | time                |
++------+------+--------+-----------+-------+---------------------+
+|    1 | b1   | p1     |      2015 |    12 | 2022-11-14 17:27:56 |
++------+------+--------+-----------+-------+---------------------+
+1 row in set (0.00 sec)
+
+
+

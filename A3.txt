@@ -1,0 +1,377 @@
+1)
+
+mysql> select * from Employee natural join Dept;
++---------+--------+-------+-------+-------------+--------+------------+----------+-----------+
+| dept_id | emp_id | fname | lname | designation | salary | joinDate   | dname    | dlocation |
++---------+--------+-------+-------+-------------+--------+------------+----------+-----------+
+|       1 |      2 | e2    | l2    | d1          |  55000 | 2013-04-16 | comp     | mumbai    |
+|       1 |      7 | h7    | l7    | d3          |  66000 | 2009-07-13 | comp     | mumbai    |
+|       2 |      3 | h3    | l3    | d2          |  44000 | 2012-09-30 | it       | pune      |
+|       2 |      4 | p4    | l4    | d4          |  90000 | 2019-03-16 | it       | pune      |
+|       2 |      6 | h6    | l6    | d2          |  66000 | 2009-05-17 | it       | pune      |
+|       3 |      8 | e8    | l8    | d6          |  50000 | 2016-07-25 | entc     | pune      |
+|       4 |      1 | p1    | l1    | d1          |  50000 | 2015-11-26 | mech     | hyderabad |
+|       4 |      9 | e9    | l9    | d6          |  33000 | 2010-07-23 | mech     | hyderabad |
+|       5 |      5 | e5    | l5    | d3          |  77000 | 2012-05-16 | civil    | mumbai    |
+|       6 |     10 | e10   | l10   | d7          |  20000 | 2018-12-26 | robotics | delhi     |
++---------+--------+-------+-------+-------------+--------+------------+----------+-----------+
+10 rows in set (0.04 sec)
+
+
+
+2) 
+
+mysql> select fname,designation,dlocation,joinDate from Employee natural join Dept;
++-------+-------------+-----------+------------+
+| fname | designation | dlocation | joinDate   |
++-------+-------------+-----------+------------+
+| e2    | d1          | mumbai    | 2013-04-16 |
+| h7    | d3          | mumbai    | 2009-07-13 |
+| h3    | d2          | pune      | 2012-09-30 |
+| p4    | d4          | pune      | 2019-03-16 |
+| h6    | d2          | pune      | 2009-05-17 |
+| e8    | d6          | pune      | 2016-07-25 |
+| p1    | d1          | hyderabad | 2015-11-26 |
+| e9    | d6          | hyderabad | 2010-07-23 |
+| e5    | d3          | mumbai    | 2012-05-16 |
+| e10   | d7          | delhi     | 2018-12-26 |
++-------+-------------+-----------+------------+
+10 rows in set (0.01 sec)
+
+mysql> select fname,designation,dlocation,joinDate from Employee left join Dept using (dept_id);
++-------+-------------+-----------+------------+
+| fname | designation | dlocation | joinDate   |
++-------+-------------+-----------+------------+
+| p1    | d1          | hyderabad | 2015-11-26 |
+| e2    | d1          | mumbai    | 2013-04-16 |
+| h3    | d2          | pune      | 2012-09-30 |
+| p4    | d4          | pune      | 2019-03-16 |
+| e5    | d3          | mumbai    | 2012-05-16 |
+| h6    | d2          | pune      | 2009-05-17 |
+| h7    | d3          | mumbai    | 2009-07-13 |
+| e8    | d6          | pune      | 2016-07-25 |
+| e9    | d6          | hyderabad | 2010-07-23 |
+| e10   | d7          | delhi     | 2018-12-26 |
++-------+-------------+-----------+------------+
+10 rows in set (0.01 sec)
+
+mysql> select fname,designation,dlocation,joinDate from Employee right join Dept using (dept_id);
++-------+-------------+-----------+------------+
+| fname | designation | dlocation | joinDate   |
++-------+-------------+-----------+------------+
+| e2    | d1          | mumbai    | 2013-04-16 |
+| h7    | d3          | mumbai    | 2009-07-13 |
+| h3    | d2          | pune      | 2012-09-30 |
+| p4    | d4          | pune      | 2019-03-16 |
+| h6    | d2          | pune      | 2009-05-17 |
+| e8    | d6          | pune      | 2016-07-25 |
+| p1    | d1          | hyderabad | 2015-11-26 |
+| e9    | d6          | hyderabad | 2010-07-23 |
+| e5    | d3          | mumbai    | 2012-05-16 |
+| e10   | d7          | delhi     | 2018-12-26 |
++-------+-------------+-----------+------------+
+10 rows in set (0.01 sec)
+
+
+mysql> select fname,designation,dlocation,joinDate from Employee e inner join Dept d on e.dept_id=d.dept_id;
++-------+-------------+-----------+------------+
+| fname | designation | dlocation | joinDate   |
++-------+-------------+-----------+------------+
+| e2    | d1          | mumbai    | 2013-04-16 |
+| h7    | d3          | mumbai    | 2009-07-13 |
+| h3    | d2          | pune      | 2012-09-30 |
+| p4    | d4          | pune      | 2019-03-16 |
+| h6    | d2          | pune      | 2009-05-17 |
+| e8    | d6          | pune      | 2016-07-25 |
+| p1    | d1          | hyderabad | 2015-11-26 |
+| e9    | d6          | hyderabad | 2010-07-23 |
+| e5    | d3          | mumbai    | 2012-05-16 |
+| e10   | d7          | delhi     | 2018-12-26 |
++-------+-------------+-----------+------------+
+10 rows in set (0.00 sec)
+
+
+
+3) 
+
+
+mysql> select e.*,p.proj_id,p.pcost from Employee e inner join Project p on e.dept_id=p.dept_id where plocation<>'pune';
++--------+---------+-------+-------+-------------+--------+------------+---------+--------+
+| emp_id | dept_id | fname | lname | designation | salary | joinDate   | proj_id | pcost  |
++--------+---------+-------+-------+-------------+--------+------------+---------+--------+
+|      3 |       2 | h3    | l3    | d2          |  44000 | 2012-09-30 |       1 | 700000 |
+|      4 |       2 | p4    | l4    | d4          |  90000 | 2019-03-16 |       1 | 700000 |
+|      6 |       2 | h6    | l6    | d2          |  66000 | 2009-05-17 |       1 | 700000 |
+|      2 |       1 | e2    | l2    | d1          |  55000 | 2013-04-16 |       2 | 500000 |
+|      7 |       1 | h7    | l7    | d3          |  66000 | 2009-07-13 |       2 | 500000 |
+|      1 |       4 | p1    | l1    | d1          |  50000 | 2015-11-26 |       3 | 250000 |
+|      9 |       4 | e9    | l9    | d6          |  33000 | 2010-07-23 |       3 | 250000 |
++--------+---------+-------+-------+-------------+--------+------------+---------+--------+
+7 rows in set (0.00 sec)
+
+mysql> select e.*,p.proj_id,p.pcost from Employee e,Project p where e.dept_id=p.dept_id and plocation<>'pune';
++--------+---------+-------+-------+-------------+--------+------------+---------+--------+
+| emp_id | dept_id | fname | lname | designation | salary | joinDate   | proj_id | pcost  |
++--------+---------+-------+-------+-------------+--------+------------+---------+--------+
+|      3 |       2 | h3    | l3    | d2          |  44000 | 2012-09-30 |       1 | 700000 |
+|      4 |       2 | p4    | l4    | d4          |  90000 | 2019-03-16 |       1 | 700000 |
+|      6 |       2 | h6    | l6    | d2          |  66000 | 2009-05-17 |       1 | 700000 |
+|      2 |       1 | e2    | l2    | d1          |  55000 | 2013-04-16 |       2 | 500000 |
+|      7 |       1 | h7    | l7    | d3          |  66000 | 2009-07-13 |       2 | 500000 |
+|      1 |       4 | p1    | l1    | d1          |  50000 | 2015-11-26 |       3 | 250000 |
+|      9 |       4 | e9    | l9    | d6          |  33000 | 2010-07-23 |       3 | 250000 |
++--------+---------+-------+-------+-------------+--------+------------+---------+--------+
+7 rows in set (0.01 sec)
+
+
+****************3 nested*****************
+
+
+
+4)
+
+mysql> select d.dname,concat(e.fname,' ',e.lname) as name,e.designation,p.pyear from Employee e inner join Project p on e.dept_id=p.dept_id inner join Dept d on e.dept_id=d.dept_id where pyear=2004;
++-------+-------+-------------+-------+
+| dname | name  | designation | pyear |
++-------+-------+-------------+-------+
+| it    | h3 l3 | d2          |  2004 |
+| it    | p4 l4 | d4          |  2004 |
+| it    | h6 l6 | d2          |  2004 |
++-------+-------+-------------+-------+
+3 rows in set (0.00 sec)
+
+mysql> select d.dname,e.fname,e.lname,e.designation from Employee e,Dept d,Project p where e.dept_id=d.dept_id and d.dept_id=p.dept_id and pyear=2004;
++-------+-------+-------+-------------+
+| dname | fname | lname | designation |
++-------+-------+-------+-------------+
+| it    | h3    | l3    | d2          |
+| it    | p4    | l4    | d4          |
+| it    | h6    | l6    | d2          |
++-------+-------+-------+-------------+
+
+
+
+5)
+
+mysql> select e.designation,e.dept_id,p.pcost from Employee e inner join Project p on e.dept_id=p.dept_id where pcost>250000;
++-------------+---------+--------+
+| designation | dept_id | pcost  |
++-------------+---------+--------+
+| d2          |       2 | 700000 |
+| d4          |       2 | 700000 |
+| d2          |       2 | 700000 |
+| d1          |       1 | 500000 |
+| d3          |       1 | 500000 |
+| d1          |       1 | 650000 |
+| d3          |       1 | 650000 |
++-------------+---------+--------+
+7 rows in set (0.00 sec)
+
+mysql> select e.designation,e.dept_id,p.pcost from Employee e natural join Project p where pcost>250000;
++-------------+---------+--------+
+| designation | dept_id | pcost  |
++-------------+---------+--------+
+| d2          |       2 | 700000 |
+| d4          |       2 | 700000 |
+| d2          |       2 | 700000 |
+| d1          |       1 | 500000 |
+| d3          |       1 | 500000 |
+| d1          |       1 | 650000 |
+| d3          |       1 | 650000 |
++-------------+---------+--------+
+7 rows in set (0.00 sec)
+
+mysql> select e.designation,e.dept_id,p.pcost from Employee e cross join Project p on e.dept_id=p.dept_id where pcost>250000;
++-------------+---------+--------+
+| designation | dept_id | pcost  |
++-------------+---------+--------+
+| d2          |       2 | 700000 |
+| d4          |       2 | 700000 |
+| d2          |       2 | 700000 |
+| d1          |       1 | 500000 |
+| d3          |       1 | 500000 |
+| d1          |       1 | 650000 |
+| d3          |       1 | 650000 |
++-------------+---------+--------+
+7 rows in set (0.00 sec)
+
+mysql> select e.designation,e.dept_id,p.pcost from Employee e left join Project p on e.dept_id=p.dept_id where pcost>250000;
++-------------+---------+--------+
+| designation | dept_id | pcost  |
++-------------+---------+--------+
+| d2          |       2 | 700000 |
+| d4          |       2 | 700000 |
+| d2          |       2 | 700000 |
+| d1          |       1 | 500000 |
+| d3          |       1 | 500000 |
+| d1          |       1 | 650000 |
+| d3          |       1 | 650000 |
++-------------+---------+--------+
+7 rows in set (0.00 sec)
+
+mysql> select e.designation,e.dept_id,p.pcost from Employee e right join Project p on e.dept_id=p.dept_id where pcost>250000;
++-------------+---------+--------+
+| designation | dept_id | pcost  |
++-------------+---------+--------+
+| d2          |       2 | 700000 |
+| d4          |       2 | 700000 |
+| d2          |       2 | 700000 |
+| d1          |       1 | 500000 |
+| d3          |       1 | 500000 |
+| d1          |       1 | 650000 |
+| d3          |       1 | 650000 |
++-------------+---------+--------+
+
+mysql> select e.designation,e.dept_id,p.pcost from Employee e,Project p where e.dept_id=p.dept_id and p.pcost>250000;
++-------------+---------+--------+
+| designation | dept_id | pcost  |
++-------------+---------+--------+
+| d2          |       2 | 700000 |
+| d4          |       2 | 700000 |
+| d2          |       2 | 700000 |
+| d1          |       1 | 500000 |
+| d3          |       1 | 500000 |
+| d1          |       1 | 650000 |
+| d3          |       1 | 650000 |
++-------------+---------+--------+
+7 rows in set (0.00 sec)
+
+
+
+6)
+
+mysql> select p1.pname from Project p1 inner join Project p2 on p1.proj_id=p2.proj_id where p1.pyear>2004;
++-------+
+| pname |
++-------+
+| p2    |
+| p4    |
+| p5    |
++-------+
+3 rows in set (0.00 sec)
+
+mysql> select p1.pname from Project p1 left join Project p2 on p1.proj_id=p2.proj_id where p1.pyear>2004;
++-------+
+| pname |
++-------+
+| p2    |
+| p4    |
+| p5    |
++-------+
+3 rows in set (0.00 sec)
+
+mysql> select pname from Project where pyear>2004;
++-------+
+| pname |
++-------+
+| p2    |
+| p4    |
+| p5    |
++-------+
+3 rows in set (0.00 sec)
+
+
+
+7)
+
+mysql> select d.dept_id,d.dname from Dept d where d.dept_id in (select e.dept_id from Employee e group by (e.dept_id) having count(e.emp_id)>1);
++---------+-------+
+| dept_id | dname |
++---------+-------+
+|       1 | comp  |
+|       2 | it    |
+|       4 | mech  |
++---------+-------+
+3 rows in set (0.02 sec)
+
+
+
+
+8)
+
+mysql> select count(*) as num_of_emp from Employee e inner join Project p on e.dept_id=p.dept_id where pyear<2007;
++------------+
+| num_of_emp |
++------------+
+|          6 |
++------------+
+1 row in set (0.00 sec)
+
+mysql> select COUNT(*) as no_of_emp,p.pyear from Employee e,Project p where e.dept_id=p.dept_id and pyear<2005;
++-----------+-------+
+| no_of_emp | pyear |
++-----------+-------+
+|         5 |  2004 |
++-----------+-------+
+1 row in set (0.00 sec)
+
+
+
+9)
+
+mysql> create view Stud_Dept as select * from Employee natural join Dept;
+Query OK, 0 rows affected (0.20 sec)
+
+mysql> select * from Stud_Dept;
++---------+--------+-------+-------+-------------+--------+------------+----------+-----------+
+| dept_id | emp_id | fname | lname | designation | salary | joinDate   | dname    | dlocation |
++---------+--------+-------+-------+-------------+--------+------------+----------+-----------+
+|       1 |      2 | e2    | l2    | d1          |  55000 | 2013-04-16 | comp     | mumbai    |
+|       1 |      7 | h7    | l7    | d3          |  66000 | 2009-07-13 | comp     | mumbai    |
+|       2 |      3 | h3    | l3    | d2          |  44000 | 2012-09-30 | it       | pune      |
+|       2 |      4 | p4    | l4    | d4          |  90000 | 2019-03-16 | it       | pune      |
+|       2 |      6 | h6    | l6    | d2          |  66000 | 2009-05-17 | it       | pune      |
+|       3 |      8 | e8    | l8    | d6          |  50000 | 2016-07-25 | entc     | pune      |
+|       4 |      1 | p1    | l1    | d1          |  50000 | 2015-11-26 | mech     | hyderabad |
+|       4 |      9 | e9    | l9    | d6          |  33000 | 2010-07-23 | mech     | hyderabad |
+|       5 |      5 | e5    | l5    | d3          |  77000 | 2012-05-16 | civil    | mumbai    |
+|       6 |     10 | e10   | l10   | d7          |  20000 | 2018-12-26 | robotics | delhi     |
++---------+--------+-------+-------+-------------+--------+------------+----------+-----------+
+10 rows in set (0.03 sec)
+
+
+
+10)
+
+Insert:
+
+mysql> insert into Stud_dept values(6,11,'e12','l12','d3',35000,'2020-06-19','robotics','delhi');
+ERROR 1394 (HY000): Can not insert into join view 'dbms_prac.stud_dept' without fields list
+mysql> insert into Stud_dept(dept_id,emp_id,fname,lname,designation,salary,joinDate,dname,dlocation) values(6,11,'e12','l12','d3',35000,'2020-06-19','robotics','delhi');
+ERROR 1393 (HY000): Can not modify more than one base table through a join view 'dbms_prac.stud_dept'
+
+Update:
+
+mysql> update Stud_Dept set fname='e11' where emp_id=10;
+Query OK, 1 row affected (0.02 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> select * from Stud_Dept;
++---------+--------+-------+-------+-------------+--------+------------+----------+-----------+
+| dept_id | emp_id | fname | lname | designation | salary | joinDate   | dname    | dlocation |
++---------+--------+-------+-------+-------------+--------+------------+----------+-----------+
+|       1 |      2 | e2    | l2    | d1          |  55000 | 2013-04-16 | comp     | mumbai    |
+|       1 |      7 | h7    | l7    | d3          |  66000 | 2009-07-13 | comp     | mumbai    |
+|       2 |      3 | h3    | l3    | d2          |  44000 | 2012-09-30 | it       | pune      |
+|       2 |      4 | p4    | l4    | d4          |  90000 | 2019-03-16 | it       | pune      |
+|       2 |      6 | h6    | l6    | d2          |  66000 | 2009-05-17 | it       | pune      |
+|       3 |      8 | e8    | l8    | d6          |  50000 | 2016-07-25 | entc     | pune      |
+|       4 |      1 | p1    | l1    | d1          |  50000 | 2015-11-26 | mech     | hyderabad |
+|       4 |      9 | e9    | l9    | d6          |  33000 | 2010-07-23 | mech     | hyderabad |
+|       5 |      5 | e5    | l5    | d3          |  77000 | 2012-05-16 | civil    | mumbai    |
+|       6 |     10 | e11   | l10   | d7          |  20000 | 2018-12-26 | robotics | delhi     |
++---------+--------+-------+-------+-------------+--------+------------+----------+-----------+
+10 rows in set (0.00 sec)
+
+Delete:
+
+mysql> delete from Stud_Dept where emp_id=10;
+ERROR 1395 (HY000): Can not delete from join view 'dbms_prac.stud_dept'
+
+Drop:
+
+mysql> drop view Stud_Dept;
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> select * from Stud_Dept;
+ERROR 1146 (42S02): Table 'dbms_prac.stud_dept' doesn't exist

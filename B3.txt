@@ -1,0 +1,146 @@
+// insert
+
+> db.createCollection('orders')
+{ "ok" : 1 }
+> db.orders.insert(_id:1,name:'harry',ord_date:new Date('2022-06-19'),items:[{item:'pen',qty:5,price:20},{item:'book',qty:1,price:50}],tot:150,status:'A')
+uncaught exception: SyntaxError: missing ) after argument list :
+@(shell):1:20
+> db.orders.insert({_id:1,name:'harry',ord_date:new Date('2022-06-19'),items:[{item:'pen',qty:5,price:20},{item:'book',qty:1,price:50}],tot:150,status:'A'})
+WriteResult({ "nInserted" : 1 })
+> db.orders.insert({_id:2,name:'ron',ord_date:new Date('2022-09-26'),items:[{item:'pen',qty:5,price:10}],tot:50,status:'A'})
+WriteResult({ "nInserted" : 1 })
+> db.orders.insert({_id:3,name:'harry',ord_date:new Date('2022-09-23'),items:[{item:'chocolate',qty:5,price:40}],tot:200,status:'A'})
+WriteResult({ "nInserted" : 1 })
+> db.orders.insert({_id:4,name:'hermione',ord_date:new Date('2022-10-30'),items:[{item:'chocolate',qty:10,price:40},{item:'pen',qty:5,price:10}],tot:450,status:'A'})
+WriteResult({ "nInserted" : 1 })
+> db.orders.insert({_id:4,name:'ron',ord_date:new Date('2022-10-30'),items:[{item:'papers',qty:100,price:2},{item:'pen',qty:5,price:10},{item:'book',qty:1,price:40}],tot:290,status:'A'})
+WriteResult({
+        "nInserted" : 0,
+        "writeError" : {
+                "code" : 11000,
+                "errmsg" : "E11000 duplicate key error collection: dbms_prac.orders index: _id_ dup key: { _id: 4.0 }"
+        }
+})
+> db.orders.insert({_id:5,name:'ron',ord_date:new Date('2022-10-30'),items:[{item:'papers',qty:100,price:2},{item:'pen',qty:5,price:10},{item:'book',qty:1,price:40}],tot:290,status:'A'})
+WriteResult({ "nInserted" : 1 })
+>
+
+
+
+// mapReduce 1
+
+> var mapFunc = function(){
+... var k = this.name;
+... var v = this.tot;
+... emit(k,v);
+... }
+> var reduceFunc = function(key,value){
+... return Array.sum(value);
+... }
+> db.orders.mapReduce(mapFunc,reduceFunc,{out:"mapReduce1"});
+{ "result" : "mapReduce1", "ok" : 1 }
+
+> db.mapReduce1.find().pretty()
+{ "_id" : "ron", "value" : 340 }
+{ "_id" : "hermione", "value" : 450 }
+{ "_id" : "harry", "value" : 350 }
+>
+
+
+
+// mapReduce2
+
+> var mapFunc2 = function(){
+... var k = this.name;
+... var totprice = 0;
+... for(var i=0;i<this.items.length;i++){
+... totprice += this.items[i].qty*this.items[i].price;
+... }
+... emit(k,totprice);
+... }
+> var reduceFunc = function(key,value){
+... return Array.sum(value);
+... }
+> db.orders.mapReduce(mapFunc,reduceFunc,{out:"mapReduce1"});
+{ "result" : "mapReduce1", "ok" : 1 }
+
+> db.orders.mapReduce(mapFunc2,reduceFunc,{out:"mapReduce2"})
+{ "result" : "mapReduce2", "ok" : 1 }
+> db.mapReduce2.find().pretty()
+{ "_id" : "harry", "value" : 350 }
+{ "_id" : "hermione", "value" : 450 }
+{ "_id" : "ron", "value" : 340 }
+>
+
+
+
+
+
+
+
+
+// mapReduce3 - avg - wrong method
+
+> var mapFunc3 = function(){
+... var k = this.name;
+... var obj = {q:0,tp:0};
+... for(var idx = 0;idx<this.items.length;idx++){
+... obj.q += this.items[idx].qty;
+... obj.tp = this.items[idx].qty*this.items[idx].price;
+... }
+... emit(k,obj);
+... }
+>
+> var reduceFunc3 = function(key,obj){
+... obj.avg = obj.tp/obj.q;
+... return obj;
+... }
+
+> db.orders.mapReduce(mapFunc3,reduceFunc3,{out:"mapReduce3"})
+{ "result" : "mapReduce3", "ok" : 1 }
+> db.mapReduce3.find()
+{ "_id" : "ron", "value" : [ { "q" : 106, "tp" : 40 }, { "q" : 5, "tp" : 50 }, NaN ] }
+{ "_id" : "harry", "value" : [ { "q" : 5, "tp" : 200 }, { "q" : 6, "tp" : 50 }, NaN ] }
+{ "_id" : "hermione", "value" : [ { "q" : 15, "tp" : 50 }, NaN ] }
+
+
+
+
+
+
+
+
+
+// mapReduce4 - avg price per item - correct method
+
+
+> var mapFunc4 = function(){
+... for(var idx=0;idx<this.items.length;idx++){
+... var k = this.name;
+... var p = {count:1,totp:this.items[idx].qty*this.items[idx].price};
+... emit(k,p);
+... }}
+
+> var reduceFunc4 = function(key,val){
+... var obj = {count:0,totp:0};
+... for(var idx=0;idx<val.length;i++){
+... obj.count += val[idx].count;
+... obj.totp += val[idx].totp;
+... }
+... return obj
+... }
+
+> var finalizeFunc4 = function(key,obj){
+... obj.avg = obj.totp/obj.count;
+... return obj;
+... }
+
+> db.orders.mapReduce(mapFunc4,reduceFunc4,{out:"mapReduce4",finalize:finalizeFunc4})
+{ "result" : "mapReduce4", "ok" : 1 }
+> db.mapReduce4.find();
+{ "_id" : "ron", "value" : { "count" : 4, "totp" : 340, "avg" : 85 } }
+{ "_id" : "harry", "value" : { "count" : 3, "totp" : 350, "avg" : 116.66666666666667 } }
+{ "_id" : "hermione", "value" : { "count" : 2, "totp" : 450, "avg" : 225 } }
+
+
+

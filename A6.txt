@@ -1,0 +1,215 @@
+// Without parameters
+
+
+mysql> create table old_emp(emp_id int primary key auto_increment,emp_name varchar(20),designation varchar(20),salary int);
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> create table new_emp(emp_id int primary key auto_increment,emp_name varchar(20),designation varchar(20),salary int);
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> insert into old_emp values(defualt,"daniel",'manager',50000);
+ERROR 1054 (42S22): Unknown column 'defualt' in 'field list'
+mysql> insert into old_emp values(1,"daniel",'manager',50000);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into old_emp values(2,"emma",'ceo',100000);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into old_emp values(3,"rupert",'cto',70000);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into new_emp values(2,"emma",'ceo',100000);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into new_emp values(7,"tom",'lead',40000);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from old_emp;
++--------+----------+-------------+--------+
+| emp_id | emp_name | designation | salary |
++--------+----------+-------------+--------+
+|      1 | daniel   | manager     |  50000 |
+|      2 | emma     | ceo         | 100000 |
+|      3 | rupert   | cto         |  70000 |
++--------+----------+-------------+--------+
+3 rows in set (0.00 sec)
+
+mysql> select * from new_emp;
++--------+----------+-------------+--------+
+| emp_id | emp_name | designation | salary |
++--------+----------+-------------+--------+
+|      2 | emma     | ceo         | 100000 |
+|      7 | tom      | lead        |  40000 |
++--------+----------+-------------+--------+
+2 rows in set (0.00 sec)
+
+
+
+
+
+create procedure merge_emp()
+begin
+declare eid int;
+declare ename varchar(20);
+declare edes varchar(20);
+declare esal int;
+declare exit_flag int default 0;
+declare c1 cursor for select emp_id,emp_name,designation,salary from old_emp;
+declare continue handler for not found set exit_flag := 1;
+declare exit handler for SQLException select "An error has occured!";
+open c1;
+label : loop
+fetch c1 into eid,ename,edes,esal;
+if not exists (select * from new_emp where emp_id=eid) then
+insert into new_emp values(eid,ename,edes,esal);
+end if;
+if exit_flag=1 then
+close c1;
+leave label;
+end if;
+end loop;
+end //
+
+
+
+mysql> call merge_emp();
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> select * from old_emp;
++--------+----------+-------------+--------+
+| emp_id | emp_name | designation | salary |
++--------+----------+-------------+--------+
+|      1 | daniel   | manager     |  50000 |
+|      2 | emma     | ceo         | 100000 |
+|      3 | rupert   | cto         |  70000 |
++--------+----------+-------------+--------+
+3 rows in set (0.00 sec)
+
+mysql> select * from new_emp;
++--------+----------+-------------+--------+
+| emp_id | emp_name | designation | salary |
++--------+----------+-------------+--------+
+|      1 | daniel   | manager     |  50000 |
+|      2 | emma     | ceo         | 100000 |
+|      3 | rupert   | cto         |  70000 |
+|      7 | tom      | lead        |  40000 |
++--------+----------+-------------+--------+
+4 rows in set (0.00 sec)
+
+
+
+
+
+
+
+
+
+
+
+
+// With parameters
+
+
+
+mysql> insert into old_emp values(6,'fred','employee',25000);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into old_emp values(4,'george','employee',23000);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into new_emp values(9,'neville','employee',20000);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into new_emp values(15,'ginny','manager',50000);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from old_emp;
++--------+----------+-------------+--------+
+| emp_id | emp_name | designation | salary |
++--------+----------+-------------+--------+
+|      1 | daniel   | manager     |  50000 |
+|      2 | emma     | ceo         | 100000 |
+|      3 | rupert   | cto         |  70000 |
+|      4 | george   | employee    |  23000 |
+|      6 | fred     | employee    |  25000 |
++--------+----------+-------------+--------+
+5 rows in set (0.00 sec)
+
+mysql> select * from new_emp;
++--------+----------+-------------+--------+
+| emp_id | emp_name | designation | salary |
++--------+----------+-------------+--------+
+|      1 | daniel   | manager     |  50000 |
+|      2 | emma     | ceo         | 100000 |
+|      3 | rupert   | cto         |  70000 |
+|      7 | tom      | lead        |  40000 |
+|      9 | neville  | employee    |  20000 |
+|     15 | ginny    | manager     |  50000 |
++--------+----------+-------------+--------+
+6 rows in set (0.00 sec)
+
+
+
+
+
+
+
+mysql> delimiter //
+mysql> create procedure merge_emp_para(in maxid int)
+    -> begin
+    -> declare eid int;
+    -> declare ename varchar(20);
+    -> declare edes varchar(20);
+    -> declare esal int;
+    -> declare exit_flag int default 0;
+    -> declare c2 cursor for select emp_id,emp_name,designation,salary from old_emp where emp_id<=maxid;
+    -> declare continue handler for not found set exit_flag := 1;
+    -> declare exit handler for SQLException select "An error has occured";
+    ->
+    -> open c2;
+    -> myloop : loop
+    -> fetch c2 into eid,ename,edes,esal;
+    -> if not exists (select * from new_emp where emp_id=eid) then
+    -> insert into new_emp values(eid,ename,edes,esal);
+    -> end if;
+    -> if exit_flag=1 then
+    -> close c2;
+    -> leave myloop;
+    -> end if;
+    -> end loop;
+    -> end //
+
+
+
+
+
+mysql> call merge_emp_para(5);
+    -> //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> delimiter ;
+mysql> select * from old_emp;
++--------+----------+-------------+--------+
+| emp_id | emp_name | designation | salary |
++--------+----------+-------------+--------+
+|      1 | daniel   | manager     |  50000 |
+|      2 | emma     | ceo         | 100000 |
+|      3 | rupert   | cto         |  70000 |
+|      4 | george   | employee    |  23000 |
+|      6 | fred     | employee    |  25000 |
++--------+----------+-------------+--------+
+5 rows in set (0.00 sec)
+
+mysql> select * from new_emp;
++--------+----------+-------------+--------+
+| emp_id | emp_name | designation | salary |
++--------+----------+-------------+--------+
+|      1 | daniel   | manager     |  50000 |
+|      2 | emma     | ceo         | 100000 |
+|      3 | rupert   | cto         |  70000 |
+|      4 | george   | employee    |  23000 |
+|      7 | tom      | lead        |  40000 |
+|      9 | neville  | employee    |  20000 |
+|     15 | ginny    | manager     |  50000 |
++--------+----------+-------------+--------+
+7 rows in set (0.00 sec)

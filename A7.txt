@@ -1,0 +1,83 @@
+mysql> create table Library(isbn int primary key auto_increment,name_of_book varchar(20),author varchar(20),publish_year varchar(4));
+Query OK, 0 rows affected (0.42 sec)
+
+mysql> create table Library_Audit(isbn int,name_of_book varchar(20),author varchar(20),publish_year varchar(4),status char(1));
+Query OK, 0 rows affected (0.07 sec)
+
+mysql> insert into Library values(default,"book1","person1",2015);
+Query OK, 1 row affected (0.06 sec)
+
+mysql> insert into Library values(default,"book2","person2",2017);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Library values(default,"book3","person1",2013);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Library values(default,"book4","person3",2013);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from Library;
++------+--------------+---------+--------------+
+| isbn | name_of_book | author  | publish_year |
++------+--------------+---------+--------------+
+|    1 | book1        | person1 | 2015         |
+|    2 | book2        | person2 | 2017         |
+|    3 | book3        | person1 | 2013         |
+|    4 | book4        | person3 | 2013         |
++------+--------------+---------+--------------+
+
+
+
+
+
+
+
+
+// Before update
+
+mysql> delimiter //
+mysql> create trigger before_update_trigger before update on Library for each row
+    -> begin
+    -> insert into Library_Audit values (old.isbn,old.name_of_book,old.author,old.publish_year,'U');
+    -> end //
+Query OK, 0 rows affected (0.04 sec)
+
+
+
+mysql> update Library set publish_year='2012' where isbn=4;
+    -> //
+Query OK, 1 row affected (0.04 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> delimiter ;
+mysql> select * from Library;
++------+--------------+---------+--------------+
+| isbn | name_of_book | author  | publish_year |
++------+--------------+---------+--------------+
+|    1 | book1        | person1 | 2015         |
+|    2 | book2        | person2 | 2017         |
+|    3 | book3        | person1 | 2013         |
+|    4 | book4        | person3 | 2012         |
++------+--------------+---------+--------------+
+4 rows in set (0.00 sec)
+
+mysql> select * from Library_Audit;
++------+--------------+---------+--------------+--------+
+| isbn | name_of_book | author  | publish_year | status |
++------+--------------+---------+--------------+--------+
+|    4 | book4        | person3 | 2013         | U      |
++------+--------------+---------+--------------+--------+
+1 row in set (0.00 sec)
+
+
+
+
+
+
+
+
+
+
+
+
+// After update

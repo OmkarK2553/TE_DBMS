@@ -1,0 +1,155 @@
+// Area
+
+
+
+mysql> delimiter //
+mysql> create procedure cal_area_new()
+    -> begin
+    -> declare r int;
+    -> declare a float(5,2);
+    -> set r := 5;
+    ->
+    -> create table area_new(radius int not null primary key,area float);
+    ->
+    -> myloop : loop
+    -> if r>9 then
+    -> leave myloop;
+    -> end if;
+    -> set a := pi()*r*r;
+    -> insert into area_new values(r,a);
+    -> set r := r+1;
+    -> end loop;
+    -> end //
+Query OK, 0 rows affected, 1 warning (0.02 sec)
+
+mysql> delimiter ;
+mysql> call cal_area_new();
+Query OK, 1 row affected (0.09 sec)
+
+mysql> select * from area_new;
++--------+--------+
+| radius | area   |
++--------+--------+
+|      5 |  78.54 |
+|      6 |  113.1 |
+|      7 | 153.94 |
+|      8 | 201.06 |
+|      9 | 254.47 |
++--------+--------+
+5 rows in set (0.01 sec)
+
+
+
+
+
+
+
+
+
+
+// Borrower Fine
+
+
+
+
+mysql> create table Borrower_new(rollno int,name varchar(20),date_of_issue date,name_of_book varchar(20),status char(1) default 'I');
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> insert into Borrower_new values(1,'dan','2022-10-01','book1',default);
+Query OK, 1 row affected (0.02 sec)
+
+mysql> insert into Borrower_new values(2,'emma','2022-10-31','book2',default);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Borrower_new values(3,'rup','2022-10-23','book3',default);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Borrower_new values(1,'dan','2022-11-01','book4',default);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Borrower_new values(5,'tom','2022-10-18','book4',default);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from Borrower_new;
++--------+------+---------------+--------------+--------+
+| rollno | name | date_of_issue | name_of_book | status |
++--------+------+---------------+--------------+--------+
+|      1 | dan  | 2022-10-01    | book1        | I      |
+|      2 | emma | 2022-10-31    | book2        | I      |
+|      3 | rup  | 2022-10-23    | book3        | I      |
+|      1 | dan  | 2022-11-01    | book4        | I      |
+|      5 | tom  | 2022-10-18    | book4        | I      |
++--------+------+---------------+--------------+--------+
+5 rows in set (0.00 sec)
+
+
+mysql> create table Fine_new(rollno int,date_of_issue date,amount int);
+Query OK, 0 rows affected (0.07 sec)
+
+mysql> select * from Fine_new;
+Empty set (0.01 sec)
+
+
+
+
+
+
+
+
+delimiter //
+create procedure fine_new(in roll int,in nbook varchar(20))begin
+declare fine int;
+declare idate date;
+declare days int;
+#declare continue handler for SQLException select "An error has occured!";
+#declare exit handler for 1146 select "Table not found!";
+if roll<0 then
+SIGNAL SQLSTATE '45000'
+set message_text = 'Rollno must be positive';
+end if;
+select date_of_issue from Borrower_new b where b.rollno=roll and b.name_of_book=nbook into idate;
+set days := datediff(curdate(),idate);
+if days between 15 and 30 then
+set fine := 5*(days-15);
+elseif days>30 then
+set fine := 75+50*(days-30);
+end if;
+insert into Fine_new values(roll,idate,ifnull(fine,0));
+update Borrower_new set status='R' where rollno=roll and name_of_book=nbook;
+end //
+
+
+
+mysql> delimiter ;
+mysql> call fine_new(1,'book4');
+Query OK, 1 row affected (0.02 sec)
+
+mysql> call fine_new(2,'book2');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> call fine_new(3,'book3');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> call fine_new(5,'book4');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from Fine_new;
++--------+---------------+--------+
+| rollno | date_of_issue | amount |
++--------+---------------+--------+
+|      1 | 2022-10-01    |    725 |
+|      1 | 2022-11-01    |      0 |
+|      2 | 2022-10-31    |      0 |
+|      3 | 2022-10-23    |     30 |
+|      5 | 2022-10-18    |     55 |
++--------+---------------+--------+
+5 rows in set (0.00 sec)
+
+
+mysql> call fine_new(-6,'b')//
+ERROR 1644 (45000): Rollno must be positive
+
+
+
+
+

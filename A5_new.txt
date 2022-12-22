@@ -1,0 +1,175 @@
+// Procedure
+
+
+
+mysql> create table Stud_Marks_new(rollno int primary key auto_increment,name varchar(20),total_marks int);
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> create table Result_new(rollno int,name varchar(20),class varchar(20));
+Query OK, 0 rows affected (0.07 sec)
+
+mysql> insert into Stud_Marks_new values(1,'dan',863);
+Query OK, 1 row affected (0.04 sec)
+
+mysql> insert into Stud_Marks_new values(2,'rup',924);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Stud_Marks_new values(3,'tom',899);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Stud_Marks_new values(4,'neville',1024);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into Stud_Marks_new values(5,'emma',1500);
+Query OK, 1 row affected (0.01 sec)
+
+
+mysql> select * from Stud_Marks_new//
++--------+---------+-------------+
+| rollno | name    | total_marks |
++--------+---------+-------------+
+|      1 | dan     |         863 |
+|      2 | rup     |         924 |
+|      3 | tom     |         899 |
+|      4 | neville |        1024 |
+|      5 | emma    |        1500 |
++--------+---------+-------------+
+5 rows in set (0.00 sec)
+
+
+
+
+delimiter //
+create procedure proc_Grade_new(in roll int)
+begin
+declare sname varchar(20);
+declare smarks int;
+declare class varchar(20);
+declare exit handler for 1146 select "Table not found";
+if roll<0 then
+SIGNAL SQLSTATE '45000'
+set message_text = "Roll no must be positive";
+end if;
+select name,total_marks from Stud_Marks_new s where s.rollno=roll into sname,smarks;
+if smarks between 990 and 1500 then
+set class := 'distinction';
+elseif smarks between 900 and 989 then
+set class := 'first class';
+elseif smarks between 825 and 899 then
+set class := 'higher second class';
+end if;
+if smarks<825 then
+SIGNAL SQLSTATE '45000'
+set message_text = 'marks must be greater than 824';
+end if;
+
+if sname<>NULL and smarks<>NULL then
+insert into Result_new values(roll,sname,class);
+else
+SIGNAL SQLSTATE '45000'
+set message_text = 'Roll no does not exist';
+end if;
+
+end //
+delimiter ;
+
+
+
+
+
+
+mysql> select * from Result_new;
++--------+------+---------------------+
+| rollno | name | class               |
++--------+------+---------------------+
+|      1 | dan  | higher second class |
+|      3 | tom  | higher second class |
+|      5 | emma | distinction         |
+|      2 | rup  | first class         |
++--------+------+---------------------+
+
+
+mysql> call proc_Grade_new(-7);
+ERROR 1644 (45000): Roll no must be positive
+
+mysql> call proc_Grade_new(9);
+ERROR 1644 (45000): marks must be greater than 824
+
+mysql> call proc_Grade_new(65);
+ERROR 1644 (45000): Roll no does not exist
+
+
+
+
+
+
+
+
+
+// Function
+
+
+
+
+delimiter //
+create function grade_func_new(roll int)
+returns varchar(20)
+deterministic
+begin
+declare sname varchar(20);
+declare smarks int;
+declare class varchar(20);
+declare error_message varchar(20);
+declare exit handler for SQLException select "An error occured!" into error_message;
+
+#if roll<0 then
+#SIGNAL SQLSTATE '45000'
+#set message_text = 'Roll no must be positive';
+#end if;
+
+select name,total_marks from Stud_Marks_new s where s.rollno=roll into sname,smarks;
+
+#if smarks<825 then
+#SIGNAL SQLSTATE '45000'
+#set message_text = 'Marks must be greater than 824';
+#end if;
+
+if smarks between 990 and 1500 then
+set class := 'distinction';
+elseif smarks between 900 and 989 then
+set class := 'first class';
+elseif smarks between 825 and 899 then
+set class := 'higher second class';
+end if;
+
+#if sname=NULL and smarks=NULL then
+#SIGNAL SQLSTATE '45000'
+#set message_text = "Roll no does not exist!";
+#end if;
+
+return class;
+end //
+
+
+
+mysql> create table Result_func_new (select rollno,name,grade_func_new(rollno) as class from Stud_Marks_new);
+    -> //
+Query OK, 6 rows affected (0.05 sec)
+Records: 6  Duplicates: 0  Warnings: 0
+
+
+mysql> select * from Result_func_new;
++--------+---------+---------------------+
+| rollno | name    | class               |
++--------+---------+---------------------+
+|      1 | dan     | higher second class |
+|      2 | rup     | first class         |
+|      3 | tom     | higher second class |
+|      4 | neville | distinction         |
+|      5 | emma    | distinction         |
+|      9 | xyz     | NULL                |
++--------+---------+---------------------+
+6 rows in set (0.00 sec)
+
+
+

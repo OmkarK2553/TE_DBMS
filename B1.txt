@@ -1,0 +1,1123 @@
+> use dbms_prac
+switched to db dbms_prac
+> show collections
+demo
+
+
+> db.createCollection('student')
+{ "ok" : 1 }
+> show collections
+demo
+student
+
+
+> db.student.insert({
+... rollno:1,
+... name:"harry",
+... class:'te1',
+... skills:['cricket','volleyball','tt'],
+... marks:{
+... 'dbms':95,
+... 'cns':93
+... }})
+WriteResult({ "nInserted" : 1 })
+
+
+> db.student.insert([ {rollno:2,name:"hermione",class:'te1',skills:['singing','reading','cricket'],marks:{'dbms':99,'cns':97}}, {rollno:3,name:"ron",class:"te1",skills:['cricket','tt'],marks:{'dbms':94,'cns':94}}, {rollno:4,name:"neville",class:'te2',skills:['volleyball','reading'],marks:{'dbms':91,'cns':88}} ])
+BulkWriteResult({
+        "writeErrors" : [ ],
+        "writeConcernErrors" : [ ],
+        "nInserted" : 3,
+        "nUpserted" : 0,
+        "nMatched" : 0,
+        "nModified" : 0,
+        "nRemoved" : 0,
+        "upserted" : [ ]
+})
+
+
+> db.student.find().pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "volleyball",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 95,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading",
+                "cricket"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 94
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 88
+        }
+}
+
+
+
+> db.student.update({rollno:1},{$set:{class:'te2'}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.student.find({rollno:1})
+{ "_id" : ObjectId("636f444594ded9cffc686c58"), "rollno" : 1, "name" : "harry", "class" : "te2", "skills" : [ "cricket", "volleyball", "tt" ], "marks" : { "dbms" : 95, "cns" : 93 } }
+> db.student.find({rollno:1}).pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "volleyball",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 95,
+                "cns" : 93
+        }
+}
+> db.student.update({rollno:1},{$set:{'marks.dbms':90}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.student.find({rollno:1}).pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "volleyball",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+> db.student.update({rollno:1},{$set:{skills:['cricket','tt','volleyball']}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.student.find({rollno:1}).pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt",
+                "volleyball"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+
+
+
+> db.student.update({name:'draco'},{$set:{rollno:5,name:'draco',class:'te3',skills:['tt','singing','volleyball'],marks:{'dbms':92,'cns':89}}})
+WriteResult({ "nMatched" : 0, "nUpserted" : 0, "nModified" : 0 })
+> db.student.update({name:'draco'},{$set:{rollno:5,name:'draco',class:'te3',skills:['tt','singing','volleyball'],marks:{'dbms':92,'cns':89}}},{upsert:true})
+WriteResult({
+        "nMatched" : 0,
+        "nUpserted" : 1,
+        "nModified" : 0,
+        "_id" : ObjectId("636f48421e2c8dc8887cfabe")
+})
+> db.student.find().pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt",
+                "volleyball"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading",
+                "cricket"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f48421e2c8dc8887cfabe"),
+        "name" : "draco",
+        "class" : "te3",
+        "marks" : {
+                "dbms" : 92,
+                "cns" : 89
+        },
+        "rollno" : 5,
+        "skills" : [
+                "tt",
+                "singing",
+                "volleyball"
+        ]
+}
+
+
+
+> db.student.insert([ {rollno:6,name:"stud1",class:'te4',skills:['skill1','skill2'],marks:{'dbms':57,'cns':81}},{rollno:7,name:"stud2",class:'te4',skills:['skill1','skill2'],marks:{'dbms':90,'cns':83}}])
+BulkWriteResult({
+        "writeErrors" : [ ],
+        "writeConcernErrors" : [ ],
+        "nInserted" : 2,
+        "nUpserted" : 0,
+        "nMatched" : 0,
+        "nModified" : 0,
+        "nRemoved" : 0,
+        "upserted" : [ ]
+})
+> db.student.find()
+{ "_id" : ObjectId("636f444594ded9cffc686c58"), "rollno" : 1, "name" : "harry", "class" : "te2", "skills" : [ "cricket", "tt", "volleyball" ], "marks" : { "dbms" : 90, "cns" : 93 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c59"), "rollno" : 2, "name" : "hermione", "class" : "te1", "skills" : [ "singing", "reading", "cricket" ], "marks" : { "dbms" : 99, "cns" : 97 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c5a"), "rollno" : 3, "name" : "ron", "class" : "te1", "skills" : [ "cricket", "tt" ], "marks" : { "dbms" : 94, "cns" : 91 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c5b"), "rollno" : 4, "name" : "neville", "class" : "te2", "skills" : [ "volleyball", "reading" ], "marks" : { "dbms" : 91, "cns" : 91 } }
+{ "_id" : ObjectId("636f48421e2c8dc8887cfabe"), "name" : "draco", "class" : "te3", "marks" : { "dbms" : 92, "cns" : 89 }, "rollno" : 5, "skills" : [ "tt", "singing", "volleyball" ] }
+{ "_id" : ObjectId("636f498994ded9cffc686c5c"), "rollno" : 6, "name" : "stud1", "class" : "te4", "skills" : [ "skill1", "skill2" ], "marks" : { "dbms" : 57, "cns" : 81 } }
+{ "_id" : ObjectId("636f498994ded9cffc686c5d"), "rollno" : 7, "name" : "stud2", "class" : "te4", "skills" : [ "skill1", "skill2" ], "marks" : { "dbms" : 90, "cns" : 83 } }
+
+> db.student.remove({rollno:{$gt:5}},{multi:true})
+WriteResult({ "nRemoved" : 2 })
+
+
+
+
+
+
+
+
+
+> db.student.find({},{skills:{$slice:2}})
+{ "_id" : ObjectId("636f444594ded9cffc686c58"), "rollno" : 1, "name" : "harry", "class" : "te2", "skills" : [ "cricket", "tt" ], "marks" : { "dbms" : 90, "cns" : 93 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c59"), "rollno" : 2, "name" : "hermione", "class" : "te1", "skills" : [ "singing", "reading" ], "marks" : { "dbms" : 99, "cns" : 97 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c5a"), "rollno" : 3, "name" : "ron", "class" : "te1", "skills" : [ "cricket", "tt" ], "marks" : { "dbms" : 94, "cns" : 91 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c5b"), "rollno" : 4, "name" : "neville", "class" : "te2", "skills" : [ "volleyball", "reading" ], "marks" : { "dbms" : 91, "cns" : 91 } }
+{ "_id" : ObjectId("636f48421e2c8dc8887cfabe"), "name" : "draco", "class" : "te3", "marks" : { "dbms" : 92, "cns" : 89 }, "rollno" : 5, "skills" : [ "tt", "singing" ] }
+> db.student.find({},{skills:{$slice:2}}).pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f48421e2c8dc8887cfabe"),
+        "name" : "draco",
+        "class" : "te3",
+        "marks" : {
+                "dbms" : 92,
+                "cns" : 89
+        },
+        "rollno" : 5,
+        "skills" : [
+                "tt",
+                "singing"
+        ]
+}
+
+
+> db.student.find({skills:{$size:2}}).pretty()
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 91
+        }
+}
+
+
+
+
+
+
+
+
+
+
+> db.student.find({$and:[{'marks.cns':91},{class:'te1'}]}).pretty()
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+> db.student.find({$and:[{'marks.cns':91}]}).pretty()
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 91
+        }
+}
+> db.student.find({$and:[{'marks.cns':91},{rollno:{$gt:2}}]})
+{ "_id" : ObjectId("636f458094ded9cffc686c5a"), "rollno" : 3, "name" : "ron", "class" : "te1", "skills" : [ "cricket", "tt" ], "marks" : { "dbms" : 94, "cns" : 91 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c5b"), "rollno" : 4, "name" : "neville", "class" : "te2", "skills" : [ "volleyball", "reading" ], "marks" : { "dbms" : 91, "cns" : 91 } }
+> db.student.find({$and:[{'marks.cns':91},{rollno:{$gt:2}}]}).pretty()
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 91
+        }
+}
+> db.student.find({$or:[{'marks.cns':91},{rollno:{$gt:2}}]}).pretty()
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f48421e2c8dc8887cfabe"),
+        "name" : "draco",
+        "class" : "te3",
+        "marks" : {
+                "dbms" : 92,
+                "cns" : 89
+        },
+        "rollno" : 5,
+        "skills" : [
+                "tt",
+                "singing",
+                "volleyball"
+        ]
+}
+
+
+
+
+
+
+
+> db.student.find({$and:[{class:'te1'},{skills:{$in:['cricket']}}]}).pretty()
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading",
+                "cricket"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+> db.student.find({$and:[{rollno:{$gte:1}},{skills:{$in:['cricket']}}]}).pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt",
+                "volleyball"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading",
+                "cricket"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+> db.student.find({$or:[{class:'te1'},{skills:{$in:['tt']}}]}).pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt",
+                "volleyball"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading",
+                "cricket"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f48421e2c8dc8887cfabe"),
+        "name" : "draco",
+        "class" : "te3",
+        "marks" : {
+                "dbms" : 92,
+                "cns" : 89
+        },
+        "rollno" : 5,
+        "skills" : [
+                "tt",
+                "singing",
+                "volleyball"
+        ]
+}
+> db.student.find({$and:[{$or:[{class:'te1'},{skills:{$in:['tt']}}]}]}).pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt",
+                "volleyball"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading",
+                "cricket"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f48421e2c8dc8887cfabe"),
+        "name" : "draco",
+        "class" : "te3",
+        "marks" : {
+                "dbms" : 92,
+                "cns" : 89
+        },
+        "rollno" : 5,
+        "skills" : [
+                "tt",
+                "singing",
+                "volleyball"
+        ]
+}
+> db.student.find({$and:[{$or:[{class:'te1'},{skills:{$in:['tt']}}]},{name:'hermione'}]}).pretty()
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading",
+                "cricket"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+
+
+
+
+
+
+
+
+> db.student.find({skills:{$in:['cricket']}},{skills:{$slice:2}}).pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// not operator
+
+> db.student.find({rollno:{$not:{$gt:4}}}).pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt",
+                "volleyball"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading",
+                "cricket"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 91
+        }
+}
+
+
+
+
+// ne
+
+> db.student.find({rollno:{$ne:2}}).pretty()
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt",
+                "volleyball"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f48421e2c8dc8887cfabe"),
+        "name" : "draco",
+        "class" : "te3",
+        "marks" : {
+                "dbms" : 92,
+                "cns" : 89
+        },
+        "rollno" : 5,
+        "skills" : [
+                "tt",
+                "singing",
+                "volleyball"
+        ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//sort
+
+> db.student.find().sort({name:1}).pretty()
+{
+        "_id" : ObjectId("636f48421e2c8dc8887cfabe"),
+        "name" : "draco",
+        "class" : "te3",
+        "marks" : {
+                "dbms" : 92,
+                "cns" : 89
+        },
+        "rollno" : 5,
+        "skills" : [
+                "tt",
+                "singing",
+                "volleyball"
+        ]
+}
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt",
+                "volleyball"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading",
+                "cricket"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+> db.student.find().sort({class,-1,name:1}).pretty()
+uncaught exception: SyntaxError: class is an invalid identifier :
+@(shell):1:24
+> db.student.find().sort({class:-1,name:1}).pretty()
+{
+        "_id" : ObjectId("636f48421e2c8dc8887cfabe"),
+        "name" : "draco",
+        "class" : "te3",
+        "marks" : {
+                "dbms" : 92,
+                "cns" : 89
+        },
+        "rollno" : 5,
+        "skills" : [
+                "tt",
+                "singing",
+                "volleyball"
+        ]
+}
+{
+        "_id" : ObjectId("636f444594ded9cffc686c58"),
+        "rollno" : 1,
+        "name" : "harry",
+        "class" : "te2",
+        "skills" : [
+                "cricket",
+                "tt",
+                "volleyball"
+        ],
+        "marks" : {
+                "dbms" : 90,
+                "cns" : 93
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5b"),
+        "rollno" : 4,
+        "name" : "neville",
+        "class" : "te2",
+        "skills" : [
+                "volleyball",
+                "reading"
+        ],
+        "marks" : {
+                "dbms" : 91,
+                "cns" : 91
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c59"),
+        "rollno" : 2,
+        "name" : "hermione",
+        "class" : "te1",
+        "skills" : [
+                "singing",
+                "reading",
+                "cricket"
+        ],
+        "marks" : {
+                "dbms" : 99,
+                "cns" : 97
+        }
+}
+{
+        "_id" : ObjectId("636f458094ded9cffc686c5a"),
+        "rollno" : 3,
+        "name" : "ron",
+        "class" : "te1",
+        "skills" : [
+                "cricket",
+                "tt"
+        ],
+        "marks" : {
+                "dbms" : 94,
+                "cns" : 91
+        }
+}
+
+
+
+
+
+
+// limit and unset
+
+> db.student.find().limit(2)
+{ "_id" : ObjectId("636f444594ded9cffc686c58"), "rollno" : 1, "name" : "harry", "class" : "te2", "skills" : [ "cricket", "tt", "volleyball" ], "marks" : { "dbms" : 90, "cns" : 93 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c59"), "rollno" : 2, "name" : "hermione", "class" : "te1", "skills" : [ "singing", "reading", "cricket" ], "marks" : { "dbms" : 99, "cns" : 97 } }
+> db.student.update({name:'neville'},{$unset:{class:""}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.student.find()
+{ "_id" : ObjectId("636f444594ded9cffc686c58"), "rollno" : 1, "name" : "harry", "class" : "te2", "skills" : [ "cricket", "tt", "volleyball" ], "marks" : { "dbms" : 90, "cns" : 93 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c59"), "rollno" : 2, "name" : "hermione", "class" : "te1", "skills" : [ "singing", "reading", "cricket" ], "marks" : { "dbms" : 99, "cns" : 97 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c5a"), "rollno" : 3, "name" : "ron", "class" : "te1", "skills" : [ "cricket", "tt" ], "marks" : { "dbms" : 94, "cns" : 91 } }
+{ "_id" : ObjectId("636f458094ded9cffc686c5b"), "rollno" : 4, "name" : "neville", "skills" : [ "volleyball", "reading" ], "marks" : { "dbms" : 91, "cns" : 91 } }
+{ "_id" : ObjectId("636f48421e2c8dc8887cfabe"), "name" : "draco", "class" : "te3", "marks" : { "dbms" : 92, "cns" : 89 }, "rollno" : 5, "skills" : [ "tt", "singing", "volleyball" ] }
+>
